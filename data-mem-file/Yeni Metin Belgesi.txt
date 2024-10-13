@@ -1,0 +1,84 @@
+module INST_MEMORY(
+    input [31:0] PC,
+    input rst,
+    output [31:0] Inst_Code
+);
+    reg [7:0] Memory [31:0]; 
+
+    assign Inst_Code = {Memory[PC+3],Memory[PC+2],Memory[PC+1],Memory[PC]};
+
+    // Initializing memory when reset is one
+    always @(rst)
+    begin
+        if(rst == 1)
+        begin
+            // addi x2, x0, 5 # x2 = 5 , 0x00500113
+            Memory[3] = 8'h00;
+            Memory[2] = 8'h50;
+            Memory[1] = 8'h01;
+            Memory[0] = 8'h13;
+            //addi x3, x0, 12 # x3 = 12  0x00C00193
+            Memory[7] = 8'h00;
+            Memory[6] = 8'hc0;
+            Memory[5] = 8'h01;
+            Memory[4] = 8'h93;
+            // addi x7, x3, -9 # x7 = (12 - 9) = 3  0xFF718393
+            Memory[11] = 8'hff;
+            Memory[10] = 8'h71;
+            Memory[9] = 8'h83;
+            Memory[8] = 8'h93;
+            // or x4, x7, x2 # x4 = (3 OR 5) = 7  0x0023E233
+            Memory[15] = 8'h00;
+            Memory[14] = 8'h23;
+            Memory[13] = 8'he2;
+            Memory[12] = 8'h33;
+            // and x5, x3, x4 # x5 = (12 AND 7) = 4  0x0041F2B3
+            Memory[19] = 8'h00;
+            Memory[18] = 8'h41;
+            Memory[17] = 8'hf2;
+            Memory[16] = 8'hb3;
+            // add x5, x5, x4 # x5 = 4 + 7 = 11  0x004282B3
+            Memory[23] = 8'h00;
+            Memory[22] = 8'h42;
+            Memory[21] = 8'h82;
+            Memory[20] = 8'hb3;
+            // beq x5, x7, end #                 0x02728863
+            Memory[27] = 8'h00;
+            Memory[26] = 8'hd6;
+            Memory[25] = 8'h7f;
+            Memory[24] = 8'hb3;
+            // slt x4, x3, x4 # x4 = (12 < 7) = 0  0x0041A233
+            Memory[31] = 8'h00;
+            Memory[30] = 8'hf7;
+            Memory[29] = 8'h68;
+            Memory[28] = 8'hb3;
+        end
+    end
+
+endmodule
+
+
+
+
+module testbench ();
+    reg [31:0] PC;
+    reg rst;
+    wire [31:0]INST_CODE;
+
+    // Instantiating instruction memory module
+    INST_MEMORY INST_MEM_module(PC,rst,INST_CODE);
+    // Setting test conditions
+    initial
+    begin
+        rst = 1'b0;
+        #10 rst = 1'b1;
+        #10 PC = 32'd0;
+        #10 PC = 32'd4;
+        #10 PC = 32'd8;
+        #10 PC = 32'd12;
+    end
+
+    initial
+    #100 $finish;
+
+endmodule

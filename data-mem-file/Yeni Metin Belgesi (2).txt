@@ -1,0 +1,82 @@
+
+module testbench;
+
+  reg clk;                       // Saat sinyali
+  reg rst;                       // Sıfırlama sinyali
+  reg [31:0] addr;                // Bellek Adresi
+  reg [31:0] write_data;          // Bellek Adresi İçeriği
+  reg memwrite;                   // Belleğe yazma işareti
+  wire [31:0] read_data;          // Bellek Adresi İçeriğinin Çıkışı
+
+  // Bellek modülünü instantiate et
+  data_memory my_memory (
+    .clk(clk),
+    .rst(rst),
+    .addr(addr),
+    .write_data(write_data),
+    .memwrite(memwrite),
+    .read_data(read_data)
+  );
+
+  // Simülasyon için başlangıç değerleri ata
+  initial begin
+    clk = 0; rst = 1; addr = 0; write_data = 0; memwrite = 0;
+
+    // Sıfırlama işlemi
+    #5 rst = 0;
+    #5 rst = 1;
+
+    // Belleğe yazma işlemi
+    addr = 1; write_data = 42; memwrite = 1;
+
+    #10 memwrite = 0;
+    
+    // Bellekten okuma işlemi
+    addr = 1; memwrite = 0;
+    read_data = 0;
+
+    // Bekleme
+    #10 $stop;  // Simülasyonu durdur
+  end
+
+  // Saat sinyalini oluştur
+  always begin
+    #5 clk = ~clk;
+  end
+
+endmodule
+
+
+
+
+module data_memory (
+  input wire clk,                   // Saat sinyali
+  input wire rst,                   // Sıfırlama sinyali
+  input wire [31:0] addr,           // Bellek Adresi
+  input wire [31:0] write_data,     // Bellek Adresi İçeriği
+  input wire memwrite,
+  output reg [31:0] read_data       // Bellek Adresi İçeriğinin Çıkışı
+);
+
+  reg [31:0] MEMO[0:3];  // 4 kelime, her biri 32-bit bellek
+
+  integer i;
+
+  always @(posedge clk or posedge rst) begin
+    if (rst) begin
+      // Sıfırlama durumunda, belleği sıfırla ve çıkışı sıfır yap
+      for (i = 0; i < 4; i = i + 1)
+        MEMO[i] = 32'h0;
+      read_data <= 32'h0;
+    end else begin
+      if (memwrite) begin
+        // Belleğe yazma işlemi
+        if (addr < 4)
+          MEMO[addr] <= write_data;
+      end
+      // Bellekten okuma işlemi
+      read_data <= MEMO[addr];
+    end
+  end
+
+endmodule
