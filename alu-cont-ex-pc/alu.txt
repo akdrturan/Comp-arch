@@ -1,0 +1,88 @@
+/*
+ALU Control lines | Function
+-----------------------------
+	Alu control değerleri ve degerlere karsılık gelen operasyonlar
+        0000    Bitwise-AND
+        0001    Bitwise-OR
+        0010	  Add (A+B)
+        0100	 Subtract (A-B)
+        1000	 Set on less than
+        0011    Shift left logical
+        0101    Shift right logical
+        0110    Multiply
+        0111    Bitwise-XOR
+*/
+
+module ALU (
+    input [31:0] A, B,
+    input [3:0] alu_control,
+    output reg [31:0] alu_result, // input ve outputların tanımlanması			
+    output reg zero_flag
+);
+    always @(*)
+    begin
+        // Operating based on control input
+        case(alu_control)
+            4'b0000: alu_result = A & B;
+            4'b0001: alu_result = A | B;
+            4'b0010: alu_result = A + B;	//Alu controlden gelen degerlere gore yapılacak işlemin belirlenmesı
+            4'b0100: alu_result = A - B;
+            4'b1000: begin 
+                        if (A < B)
+                            alu_result = 1;
+                        else
+                            alu_result = 0;
+                    end
+            4'b0011: alu_result = A << B;
+            4'b0101: alu_result = A >> B;	//Alu controlden gelen degerlere gore yapılacak işlemin belirlenmesı
+            4'b0110: alu_result = A * B;
+            4'b0111: alu_result = A ^ B;
+        endcase
+
+        // Zero flag check
+        if (alu_result == 0)		// sunucun 0 olması durumuna bağlı olarak zero_flag'in kontrol edılmesı
+            zero_flag = 1'b1;
+        else
+            zero_flag = 1'b0;
+    end
+endmodule
+
+
+
+
+TEstbanch
+
+
+module ALUTEST();
+    reg [31:0] A,B;
+    reg [3:0] ALUControl;	//giriş ve çıkışların tanımlanması
+    wire ZERO;
+    wire [31:0] ALUResult;
+
+    // Instantiating modules
+    ALU ALU_module(.A(A),.A(B),.alu_control(ALUControl),.zero_flag(ZERO),.alu_result(ALUResult));
+	//Alu modulenın çağırılması
+    // Test şartları ve değerleri= Bu değerler kullanılarayapılacak operasyona gore sonuclar elde edılecektır
+    initial
+    begin
+        A = 30; B = 25;  ALUControl = 4'b0000; //and
+    #10 A = 30; B = 25;  ALUControl = 4'b0001; // or 
+    #10 A = 30; B = 25;  ALUControl = 4'b0010; //add
+    #10 A = 30; B = 25;  ALUControl = 4'b0100; //sub
+    #10 A = 30; B = 25;  ALUControl = 4'b1000;
+    #10 A = 42; B = 23;  ALUControl = 4'b1000;
+    #10 A = 42; B = 23;  ALUControl = 4'b0100;
+    end
+
+    initial
+    #100 $finish;
+
+endmodule
+
+
+testbanchte baslangıc degerı olarak A ve B için degerler verildi.
+ilk olarak ALUControl = 4'b0000 verilerek iki deger And operasyonu yapıldı. sonuc 
+ALUResut=18 yazıldı. daha sonra ALUControl = 4'b0001 işlemi ile A ve B girişleri arasında
+Or işlemi yapıldı. testbanchte belirtilin operasyonlara gore A ile B arasında 
+işlemler yapılarak işlemler tekrarlanarak sonuclar Aluresult'a yazıldı. işlem sonucunda 
+Alu result'un 0 esıt oldugu durumda zero flagı calısacaktır.

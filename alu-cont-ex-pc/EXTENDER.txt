@@ -1,0 +1,70 @@
+EXTENDER
+
+module immediategeneration #(parameter Width = 32)(
+input [Width-1:0] In,			//input ve outputların tanımlanması 
+output reg [Width-1:0] Out);
+always @(*)
+begin
+case(In[6:0]) // inputun ilk 7 biti dikkate alınarak (opcode)
+//aşagıdakı durumlar extenderin farklı typelarda deger okumayı nereden yaptıgını gostermektedir.
+7'b0000011 : Out <= {{{Width-12}{In[31]}},In[31:20]};   // I (lw) type
+7'b0100011 : Out <= {{{Width-12}{In[31]}},In[31:25],In[11:7]};    // S(sw)type
+7'b1100011 : Out <= {{{Width-12}{In[31]}},In[31],In[7],In[30:25],In[11:8]}; // B(Branch) type
+7'b0010011 : Out <= {{{Width-12}{In[31]}},In[31:20]}; //I (addi) type
+7'b1100111 : Out <= {{{Width-12}{In[31]}},In[31:20]}; //I (Jalr)
+7'b1101111 : Out <= {{{Width-20}{In[31]}},In[31],In[19:12],In[20],In[30:21]}; //J(jal)
+default : Out <= {Width{1'h0}};
+endcase
+end
+endmodule
+
+
+
+TESTBANCH
+
+
+module testbench;
+
+  // Parametreleri ve sinyallerin tanımlanması
+  parameter Width = 32;
+  reg [Width-1:0] In;
+  wire [Width-1:0] Out;
+
+  // Modülü çağırılması
+  immediategeneration #(Width) uut (
+    .In(In),
+    .Out(Out)
+  );
+
+  // 
+  initial begin
+    // Örnek giriş değerlerine bağlı olarak cıkısın ızlenmesı
+    In = 32'hFE420AE3;  //b type
+    #10;
+   
+
+    // Başka bir giriş değeri
+    In = 32'hABCDEF01;
+    #10; 
+    
+
+    // Başka bir giriş değeri
+    In = 32'h0062E233;  //r type
+    #10;
+    
+
+    $finish;
+  end
+
+
+
+
+endmodule
+
+ilk olarak bir input degerı verıldı. In = 32'hFE420AE3 tanımlanan bu degerın opcode'na bakarak
+hangı type oldugu belırlendı . B type olan bu giris adresi kullanılarak tasarlanandan extenderden
+ 7'b1100011 : Out <= {{{Width-12}{In[31]}},In[31],In[7],In[30:25],In[11:8]}; // B(Branch) type
+işlemi yapılması istendi .
+işlem sonucunda sekıldekı goruntu elde edıldı. aynı işlemler diger input degerlerı kullanılarak tekrarlandı ve giren immediate deger 
+genişletildi.
+işlemini yapması istendi 

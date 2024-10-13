@@ -1,0 +1,55 @@
+module PC_COUNTER(
+    input clock,reset,		//çıkış-girişlerin tanımlanması
+    output [31:0] PC
+);
+reg [31:0] PC = 32'b0;  // girişin başlangıc degerinin sıfırlanması
+
+ 
+    always @(posedge clock, posedge reset)
+    begin
+        if(reset == 1)  // resetin 1 durumunda pc 0 yap
+        PC <= 0;
+        else
+        PC <= PC+4;   // haricindeki durumda pc + 4 ekleyerek devam et
+    end
+
+endmodule
+
+
+
+
+
+TEST BECNEH
+
+module PC_TEST(
+
+);
+    reg CLOCK, RESET;
+    wire [31:0] OUTPUT;
+
+    PC_COUNTER PC_COUNTER_module(CLOCK,RESET,OUTPUT);
+
+   
+    initial
+    begin
+        RESET = 1'b0;
+        #20 RESET = 1'b1;
+        #100 RESET = 1'b0;
+        #100 RESET = 1'b1;
+    end
+
+    initial
+    begin
+        CLOCK = 1;
+        forever #20 CLOCK = ~CLOCK;
+    end
+
+    initial
+    #200 $finish;
+
+endmodule
+
+Başlangıç kosulunda pc = 0 alındı. reset sinyali 0 iken clock sınyalı 1 oldugu durumda 
+output olan sınyalımıze +4 eklendı . sonrakı adımda reset sinyali 1 oldu . 
+sinyal 1 oldugu sure boyunca cıkıs sıfırlandı.bu sure 100ns'dir. daha sonrakı adımda
+reset sınyalı sıfır oldu. sure boyunca her clock vurdugunda output +4 artarak işlem devam etti 
